@@ -35,19 +35,16 @@ Big thanks to Flux Garage for making robot eyes so easy to implement!
     - **Sensor**: A5
 3. Upload the code and start interacting with your robot!
 
-## Features added by me
- I implemented a comprehensive set of features to give the robot a dynamic personality and advanced interactivity. The system begins with a custom startup screen that tracks and displays the total number of boots utilizing a counter stored persistently in EEPROM (`eeprom_ran`). For power management, a software standby mode (`powerStatus`) allows the robot to be woken up via a simple touch and put to sleep with a triple tap. The touch interaction logic reads an analog capacitive sensor on pin A6 with custom debouncing to accurately distinguish between single taps (`triggerShortTouchTask()`), long presses (`triggerLongTouchTask()`), triple taps, and excessive consecutive tapping (`triggerTooManyTapsTask()`). These inputs drive dynamic emotion control, transitioning the robot through various moods (happy, laughing, tired, angry) and eye-flickering animations when agitated. To ensure the robot feels alive when left alone, `handleIdleAnimations()` executes a detailed, time-based timeline of autonomous idle behaviors—including waking up, looking around, sweating, expressing curiosity, and dozing off. Finally, distinct sound behaviors are integrated using a passive buzzer on pin 6, featuring functions for R2D2-style chirps (`playR2D2()`), sad tones (`playSad()`), angry grumbles (`playAngry()`), and frantic screams (`playScream()`), complete with a persistent sound mode toggle saved to EEPROM.
-
- I also added a random seed generator based on analog noise on ungrounded pins, improved shutdown logic by checking for multiple long touches, refined the idle animation timeline with more realistic timing and behaviors (including sweat, curiosity, and sleep), and added a new angry sound effect (`playAngry()`).
-
-## Interaction Logic
+## Features added by me & Interaction Logic
 The touch sensor logic supports multi-tap detection within a set time window (`TAP_GAP_TIME`), enabling distinct behaviors based on the number of taps:
 
 - **Single Tap**: Trigger plays an R2D2 sound effect, and updates the robot's expression. Depending on its previous state, it can wake up from sleep looking angry, transition from happy to laughing, or switch to a happy mood with a friendly blink.
 
 - **Triple Tap**: Activates sleep mode. Plays a downward sad tone, displays `"sleeping.."` on the OLED screen, and gracefully puts the robot into software standby.
 
-- **Too Many Taps (4+ Taps)**: Triggers `triggerTooManyTapsTask()`. Agitates the robot, setting its mood to ANGRY. Repeatedly tapping too many times causes it to look confused, alternate between growling sounds with vertical eye flickering and sharp ticks with horizontal flickering, and eventually unleash a frantic glitchy scream if pushed too far.
+- **Too Many Taps (4+ Taps)**: Agitates the robot, setting its mood to ANGRY. Repeatedly tapping too many times causes it to look confused, alternate between growling sounds with vertical eye flickering and sharp ticks with horizontal flickering, and eventually unleash a frantic glitchy scream if pushed too far.
+
+I implemented a comprehensive set of features to give the robot a dynamic personality and advanced interactivity. The system begins with a custom startup screen that tracks and displays the total number of boots utilizing a counter stored persistently in EEPROM. For power management, a software standby mode allows the robot to be woken up via a simple touch and put to sleep with a triple tap. The touch interaction logic reads an analog capacitive sensor on pin A6 with custom debouncing to accurately distinguish between single taps, long presses, triple taps, and excessive consecutive tapping. These inputs drive dynamic emotion control, transitioning the robot through various moods (happy, laughing, tired, angry) and eye-flickering animations when agitated. To ensure the robot feels alive when left alone, an automated timeline executes autonomous idle behaviors—including waking up, looking around, sweating, expressing curiosity, and dozing off. Finally, distinct sound behaviors are integrated using a passive buzzer on pin 6, featuring R2D2-style chirps, sad tones, angry grumbles, and frantic screams, complete with a persistent sound mode toggle saved to EEPROM.
 
 ---
 
