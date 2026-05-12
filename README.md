@@ -51,4 +51,4 @@ The touch sensor logic supports multi-tap detection within a set time window (`T
 
 ---
 
-**Note**: I'm just a student experimenting and learning, so parts of this implementation might be a bit messy, janky, or downright stupid. But hey, it works and brings the robot to life! Suggestions, laughs, and improvements are always welcome. :)
+**Note**: I'm just a student experimenting and learning, so parts of this implementation might be a bit messy, janky, or downright stupid. But hey, it works and brings the robot to life! Suggestions, laughs, and improvements are always welcome. :)-jimbru
