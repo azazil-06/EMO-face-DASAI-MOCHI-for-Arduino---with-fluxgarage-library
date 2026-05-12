@@ -1,6 +1,7 @@
 #include <Wire.h>
 #include <Adafruit_SSD1306.h>
 #include <FluxGarage_RoboEyes.h>
+#include<EEPROM.h>
 
 // --- Configuration ---
 #define SCREEN_WIDTH 128
@@ -21,13 +22,16 @@ const int TAP_GAP_TIME = 400;   // Time to wait for next tap (ms)
 
 // --- State Variables ---
 unsigned long eventTimer;
+unsigned long nextResetDelay = 100000;
+int eeprom_ran = 0;
+bool sound=0;
 unsigned long touchStartTime = 0;
 unsigned long lastTouchReleaseTime = 0;
 int tapCount = 0;
 bool isTouching = false;
-bool event1Played = false, event2Played = false,event3Played = false ,event4Played = false,event5Played = false,event6Played = false,event7Played = false,event8Played = false,event9Played=false,event10Played=false,event11Played=false,event12Played=false,event13Played=false,event14Played=false,event15Played=false,event16Played=false,event17Played=false,event18Played=false,event19Played=false,event20Played=false,event21Played=false;
+bool eventPlayed[21] = {false};
 
-bool aj1=false,aj2=false,aj3=false,aj4=false,aj5=false;
+bool aj[5] = {false};
 
 
 bool longPressTriggered = false;
@@ -35,7 +39,7 @@ bool longPressTriggered = false;
 bool flag=true;
 bool sleep=false;
 
-bool hasPlayedHeart = false, powerStatus=false,boot=false;
+bool hasPlayed = false, powerStatus=false,boot=false;
 
 int mood=0;
 
@@ -48,7 +52,11 @@ void setup() {
 
   pinMode(7, OUTPUT);
 digitalWrite(7, LOW);
-  
+  EEPROM.get(0, eeprom_ran);
+  eeprom_ran++;
+  EEPROM.put(0, eeprom_ran);
+
+   EEPROM.get(1, sound);
   
   if(!display.begin(SSD1306_SWITCHCAPVCC, OLED_ADDR)) { 
     for(;;); 
@@ -59,6 +67,7 @@ digitalWrite(7, LOW);
   roboEyes.close();
   
   eventTimer = millis();
+  nextResetDelay = random(100000, 200000);
   
 }
 // 10 seconds to shut down
@@ -71,7 +80,6 @@ void loop() {
   bool isPressed = (sensorValue > THRESHOLD);
 
   static unsigned long powerOffTime = 0;
-
 if(!boot){  //initial boot only
 display.clearDisplay();
   display.setTextSize(1);
@@ -81,7 +89,9 @@ display.println(":)");
 display.setCursor(10, 30);
 display.println("kuttappan standby");
 display.setCursor(20, 50);
-display.println("firmware 2.16");
+display.println("boot count:");
+display.setCursor(88, 50);
+display.println(eeprom_ran);
 display.display();}
 
 if (!powerStatus) {
@@ -250,15 +260,46 @@ void triggerShortTouchTask() {
 
 void triggerLongTouchTask() {
 
-  roboEyes.setMood(HAPPY);
+ 
+  sound=!sound;
+  EEPROM.put(1, sound);
 
-  sendDataToPC("Long_TAP", 2);
+ roboEyes.setMood(HAPPY);
 
- if (!hasPlayedHeart) {
-    heart(); 
-    hasPlayedHeart = true; // This prevents it from running again
+
+
+ if (!hasPlayed) {
+
+  //write something happy here
+    roboEyes.setWidth(46, 46);
+    roboEyes.setHeight(50, 50);
+    roboEyes.setBorderradius(12, 12);
+    roboEyes.setMood(HAPPY);
+    roboEyes.setAutoblinker(OFF, 0, 0);
+    roboEyes.anim_laugh();
+    roboEyes.blink(0, 2);
+    for (int i = 0; i < 3; i++) {
+      tone(BUZZER_PIN, 1800 + (i * 300), 60);
+      delay(90);
+    }
+    noTone(BUZZER_PIN);
+    
+    hasPlayed = true; // This prevents it from running again
   }
+  else {
+     display.clearDisplay();
+  display.setTextSize(1);
+display.setTextColor(WHITE);
+display.setCursor(20, 30);
+display.println("sound mode:");
+display.setCursor(88, 30);
+sound==1 ? display.println("ON") : display.println("OFF");
+display.display();
+ delay(1000);
+  display.clearDisplay();
+  
   roboEyes.setMood(TIRED);
+ }
 }
 
 
@@ -322,21 +363,22 @@ void handleIdleAnimations() {
 
     
   // Event: Wake up after 2 seconds
-  if(currentMillis >= eventTimer + 2000 && !event1Played){
-    event1Played = true;
+  if(currentMillis >= eventTimer + random(2000,5000) && !eventPlayed[0]){
+    eventPlayed[0] = true;
     roboEyes.open(); 
     roboEyes.blink(0,1) ;
     
   }
   
   // Event: Look Tired after 5 seconds
-  if(currentMillis >= eventTimer + 5000 && !event2Played){
-    event2Played = true;
+  if(currentMillis >= eventTimer + random(5000,8000) && !eventPlayed[1]){
+    eventPlayed[1] = true;
+    
     roboEyes.setMood(TIRED);
   }
 
-  if(currentMillis >= eventTimer + 8000 && !event3Played){
-    event3Played = true;
+  if(currentMillis >= eventTimer + random(8000,11000) && !eventPlayed[2]){
+    eventPlayed[2] = true;
     roboEyes.setCuriosity(ON);
     roboEyes.setMood(DEFAULT);    
     roboEyes.setPosition(W); 
@@ -345,24 +387,26 @@ void handleIdleAnimations() {
 
   }
 
-  if(currentMillis >= eventTimer + 11000 && !event4Played){
-    event4Played = true;   
+  if(currentMillis >= eventTimer + 11000 && !eventPlayed[3]){
+    eventPlayed[3] = true;   
     roboEyes.setPosition(SW);  
      roboEyes.setMood(DEFAULT);
+     if(sound){playR2D2();}
 
   }
 
-  if(currentMillis >= eventTimer + 14000 && !event5Played){
-    event5Played = true;  
+  if(currentMillis >= eventTimer + 14000 && !eventPlayed[4]){
+    eventPlayed[4] = true;  
     roboEyes.setPosition(E); 
     roboEyes.close(); 
      roboEyes.setMood(DEFAULT);
 
   }
 
-  if(currentMillis >= eventTimer + 17000 && !event6Played){
-    event6Played = true;
+  if(currentMillis >= eventTimer + random(14000,17000) && !eventPlayed[5]){
+    eventPlayed[5] = true;
     roboEyes.open(); 
+    
     roboEyes.setPosition(SE); 
     roboEyes.setPosition(DEFAULT); 
      roboEyes.setMood(DEFAULT); 
@@ -370,16 +414,16 @@ void handleIdleAnimations() {
 
   }
 
-   if(currentMillis >= eventTimer + 19000 && !event7Played){
-    event7Played = true;
+   if(currentMillis >= eventTimer + random(140000,27000) && !eventPlayed[6]){
+    eventPlayed[6] = true;
      roboEyes.setPosition(W);
     roboEyes.update();   
     roboEyes.close();
      roboEyes.setMood(DEFAULT);
 
   }
-  if(currentMillis >= eventTimer + 22000 && !event8Played){
-    event8Played = true;
+  if(currentMillis >= eventTimer + random(22000,25000) && !eventPlayed[7]){
+    eventPlayed[7] = true;
     roboEyes.setPosition(E);
     roboEyes.open();
      roboEyes.setMood(DEFAULT);
@@ -389,8 +433,8 @@ void handleIdleAnimations() {
 
 
 
-  if(currentMillis >= eventTimer + 25000 && !event9Played){
-    event9Played = true; 
+  if(currentMillis >= eventTimer + 25000 && !eventPlayed[8]){
+    eventPlayed[8] = true; 
     roboEyes.setHeight(66,66);
     roboEyes.setWidth(66,66);
     roboEyes.update();
@@ -400,43 +444,45 @@ void handleIdleAnimations() {
   }
 
 
-  if(currentMillis >= eventTimer + 27000 && !event10Played){
-    event10Played = true;   
+  if(currentMillis >= eventTimer + 27000 && !eventPlayed[9]){
+    eventPlayed[9] = true;   
     roboEyes.setPosition(SW);  
     roboEyes.setHeight(36,36);
     roboEyes.setWidth(36,36);
+    if(sound){playR2D2();}
     roboEyes.update();
      roboEyes.setMood(DEFAULT);
 
+
   }
 
-  if(currentMillis >= eventTimer + 30000 && !event11Played){
-    event11Played = true;  
+  if(currentMillis >= eventTimer + 30000 && !eventPlayed[10]){
+    eventPlayed[10] = true;  
     roboEyes.setPosition(E); 
     roboEyes.setBorderradius(8,20);
     roboEyes.open(1, 0);
-     
+     if(sound){playR2D2();}
       roboEyes.setMood(DEFAULT);
       roboEyes.setSweat(ON);
      
 
   }
 
- if(currentMillis >= eventTimer + 32000 && !event12Played){
-    event12Played = true;
+ if(currentMillis >= eventTimer + 32000 && !eventPlayed[11]){
+    eventPlayed[11] = true;
     roboEyes.open(); 
     roboEyes.setPosition(S); 
      roboEyes.setMood(DEFAULT);
     roboEyes.setPosition(DEFAULT);  
-  } // <--- Added missing brace here
+  } 
 
-   if(currentMillis >= eventTimer + 32500 && !event13Played){
-    event13Played = true;
+   if(currentMillis >= eventTimer + 32500 && !eventPlayed[12]){
+    eventPlayed[12] = true;
     roboEyes.setHFlicker(ON,10);  
      roboEyes.setMood(DEFAULT);
   } 
-  if(currentMillis >= eventTimer + 33000 && !event14Played){
-    event14Played = true;
+  if(currentMillis >= eventTimer + 33000 && !eventPlayed[13]){
+    eventPlayed[13] = true;
     roboEyes.setHFlicker(OFF,5);  
      roboEyes.setBorderradius(8,8);
      roboEyes.setWidth(36, 36);
@@ -444,8 +490,9 @@ void handleIdleAnimations() {
      roboEyes.setHeight(36, 36);
   } 
 
-  if(currentMillis >= eventTimer + 36000 && !event15Played){
-    event15Played = true;
+  if(currentMillis >= eventTimer + 36000 && !eventPlayed[14]){
+    eventPlayed[14] = true;
+    if(sound){playR2D2();}
      roboEyes.setMood(TIRED); 
      sleep=true;
      roboEyes.setBorderradius(8,8);
@@ -453,16 +500,17 @@ void handleIdleAnimations() {
      roboEyes.setHeight(32, 32);
   } 
 
-  if(currentMillis >= eventTimer + 37000 && !event16Played){
-    event16Played = true;
+  if(currentMillis >= eventTimer + 37000 && !eventPlayed[15]){
+    eventPlayed[15] = true;
+    
       
      roboEyes.setBorderradius(8,8);
      roboEyes.setWidth(36, 36);
      roboEyes.setHeight(28, 28);
   } 
 
-  if(currentMillis >= eventTimer + 39000 && !event17Played){
-    event17Played = true;
+  if(currentMillis >= eventTimer + 39000 && !eventPlayed[16]){
+    eventPlayed[16] = true;
       
      roboEyes.setBorderradius(8,8);
      roboEyes.setWidth(36, 36);
@@ -470,16 +518,16 @@ void handleIdleAnimations() {
   } 
 
 
-if(currentMillis >= eventTimer + 41000 && !event18Played){
-    event18Played = true;
+if(currentMillis >= eventTimer + 41000 && !eventPlayed[17]){
+    eventPlayed[17] = true;
       
      roboEyes.setBorderradius(8,8);
      roboEyes.setWidth(36, 36);
      roboEyes.setHeight(20, 20);
   } 
 
-if(currentMillis >= eventTimer + 43000 && !event19Played){
-    event19Played = true;
+if(currentMillis >= eventTimer + 43000 && !eventPlayed[18]){
+    eventPlayed[18] = true;
       
      roboEyes.setBorderradius(8,8);
      roboEyes.setWidth(36, 36);
@@ -487,8 +535,8 @@ if(currentMillis >= eventTimer + 43000 && !event19Played){
   } 
 
 
-  if(currentMillis >= eventTimer + 44500 && !event20Played){
-    event20Played = true;
+  if(currentMillis >= eventTimer + 44500 && !eventPlayed[19]){
+    eventPlayed[19] = true;
      
      roboEyes.setVFlicker(ON,5);
      roboEyes.setMood(DEFAULT);
@@ -502,10 +550,11 @@ if(currentMillis >= eventTimer + 43000 && !event19Played){
 
 
   // Loop Reset: Reset everything after 35 seconds
-  if(currentMillis >= eventTimer + 45000&& !event21Played){
-    event21Played = true;
+  if(currentMillis >= eventTimer + 45000&& !eventPlayed[20]){
+    eventPlayed[20] = true;
     roboEyes.setVFlicker(OFF,2);
     roboEyes.setHeight(36, 36);
+    if(sound){playR2D2();}
     
     roboEyes.setCuriosity(ON);
    roboEyes.setAutoblinker(ON, 3, 2); // Start auto blinker animation cycle -> bool active, int interval, int variation -> turn on/off, set interval between each blink in full seconds, set range for random interval variation in full seconds
@@ -513,145 +562,29 @@ if(currentMillis >= eventTimer + 43000 && !event19Played){
                                                     
     
   }
-  
+    
 
-
-
-  
-
-    if(currentMillis >= eventTimer + 100000){
+    if(currentMillis >= eventTimer + nextResetDelay){
     eventTimer = currentMillis; // Reset the baseline time
+    nextResetDelay = random(100000, 200000);
     roboEyes.setCuriosity(OFF);
      roboEyes.setAutoblinker(OFF, 3, 2);
      roboEyes.setIdleMode(OFF, 5, 2);
     // Reset ALL flags to false so the IF statements can trigger again
-    event1Played = false;
-    event2Played = false;
-    event3Played = false;
-    event4Played = false;
-    event5Played = false;
-    event6Played = false;
-    event7Played = false;
-    event8Played = false; // Make sure event 8 is here!
-    event9Played = false;
-    event10Played = false;
-    event11Played = false;
-    event12Played = false;
-    event13Played = false; // Add this
-    event14Played = false;
-    event15Played=false;
-    event16Played=false;
-    event17Played=false;
-    event18Played=false;
-    event19Played=false;
-    event20Played=false;
-    event21Played=false;
+    for (int i = 0; i < 21; i++) {
+      eventPlayed[i] = false;
+    }
 
-    hasPlayedHeart = false;
+    hasPlayed = false;
     tap=0;
 
-    aj1=false;
-    aj2=false;
+    aj[0]=false;
+    aj[1]=false;
 
   }
 
  
 }
-
-
-
-
-
-
-
-
-
-
-
-// --- HELPER: Draw a heart with a specific size ---
-void drawHeart(int x, int y, int size) {
-  if (size <= 0) return; 
-  int r = size;
-  float cr = (size * 0.55);
-  int off = (size * 0.5);
-  
-  display.fillTriangle(x - r, y, x, y + r, x + r, y, WHITE);
-  display.fillCircle(x - off, y, cr, WHITE);
-  display.fillCircle(x + off, y, cr, WHITE);
-}
-
-// --- HELPER: Redraw the whole face to prevent flickering ---
-void renderFace(int heartSize, bool isBlink) {
-  display.clearDisplay();
-  
-  int leftX = 40;
-  int rightX = 88;
-  int eyeY = 22;
-
-  if (isBlink) {
-    // Smooth blink lines (slightly rounded rectangles)
-    display.fillRoundRect(leftX - 8, eyeY + 5, 16, 4, 2, WHITE);
-    display.fillRoundRect(rightX - 8, eyeY + 5, 16, 4, 2, WHITE);
-    // Neutral small mouth
-    display.fillRoundRect(54, 54, 22, 3, 1, WHITE);
-  } else {
-    // Draw the growing/beating hearts
-    drawHeart(leftX, eyeY, heartSize);
-    drawHeart(rightX, eyeY, heartSize);
-    
-    // Smooth curved smile
-    display.fillCircle(64, 50, 12, WHITE);
-    display.fillRect(0, 38, 128, 12, BLACK); 
-  }
-  
-  display.display();
-}
-
-void heart() {
-  // 1. SMOOTH GROW (Transition from roboEyes HAPPY to Heart Eyes)
-  // Hearts "pop" out from size 0 to 16
-  for (int s = 0; s <= 16; s += 2) {
-    renderFace(s, false);
-    delay(15); 
-  }
-
-  // 2. THE HEARTBEAT EFFECT
-  // Loops a "pulse" 3 times to make the robot feel emotional
-  for (int pulse = 0; pulse < 3; pulse++) {
-    // Scale up slightly
-    for (int s = 16; s <= 19; s++) {
-      renderFace(s, false);
-      delay(20);
-    }
-    // Scale back down
-    for (int s = 19; s >= 16; s--) {
-      renderFace(s, false);
-      delay(20);
-    }
-    delay(100); // Pause at the bottom of the beat
-  }
-
-  // 3. SMOOTH BLINK
-  renderFace(0, true);
-
-
-  // 4. RETURN TO NORMAL HEARTS
-  for (int s = 0; s <= 16; s += 2) {
-    renderFace(s, false);
-    delay(10);
-  }
-  
-// Hold the final look
-}
-
-
-
-
-
-
-
-
-
 
 
 // Function to send robot data to Python via Serial
@@ -662,13 +595,6 @@ void sendDataToPC(String eventName, int value) {
   Serial.print(",");
   Serial.println(value); // println adds the '\n' Python needs to identify the end of a line
 }
-
-
-
-
-
-
-
 
 
 
@@ -754,9 +680,6 @@ void playSad() {
   }
   noTone(BUZZER_PIN);
 }
-
-
-
 
 
 void playAngry() {
