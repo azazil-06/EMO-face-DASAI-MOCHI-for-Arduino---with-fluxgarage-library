@@ -1,7 +1,7 @@
 # Robot Eyes Project
 
 <p align="center">
-  <img src="assets/t/Screenshot_20260510-203344.png" width="300" />
+  <img src="assets/Screenshot_20260510-203344.png" width="300" />
   <img src="assets/Screenshot_20260510-203355.png" width="300" />
 </p>
 
