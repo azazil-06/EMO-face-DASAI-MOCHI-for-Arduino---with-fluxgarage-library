@@ -1,8 +1,8 @@
 # Robot Eyes Project
 
 <p align="center">
-  <img src="Screenshot_20260510-203344.png" width="300" />
-  <img src="Screenshot_20260510-203355.png" width="300" />
+  <img src="assets/t/Screenshot_20260510-203344.png" width="300" />
+  <img src="assets/Screenshot_20260510-203355.png" width="300" />
 </p>
 
 A fun Arduino project featuring a robot with emotional expressions and interactive touch logic. This project uses an OLED display to bring a robot face to life with various moods and animations.
