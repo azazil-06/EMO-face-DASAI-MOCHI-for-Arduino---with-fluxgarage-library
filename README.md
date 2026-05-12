@@ -40,6 +40,15 @@ Big thanks to Flux Garage for making robot eyes so easy to implement!
 
  I also added a random seed generator based on analog noise on ungrounded pins, improved shutdown logic by checking for multiple long touches, refined the idle animation timeline with more realistic timing and behaviors (including sweat, curiosity, and sleep), and added a new angry sound effect (`playAngry()`).
 
- 
+## Interaction Logic
+The touch sensor logic supports multi-tap detection within a set time window (`TAP_GAP_TIME`), enabling distinct behaviors based on the number of taps:
 
- 
+- **Single Tap**: Trigger plays an R2D2 sound effect, and updates the robot's expression. Depending on its previous state, it can wake up from sleep looking angry, transition from happy to laughing, or switch to a happy mood with a friendly blink.
+
+- **Triple Tap**: Activates sleep mode. Plays a downward sad tone, displays `"sleeping.."` on the OLED screen, and gracefully puts the robot into software standby.
+
+- **Too Many Taps (4+ Taps)**: Triggers `triggerTooManyTapsTask()`. Agitates the robot, setting its mood to ANGRY. Repeatedly tapping too many times causes it to look confused, alternate between growling sounds with vertical eye flickering and sharp ticks with horizontal flickering, and eventually unleash a frantic glitchy scream if pushed too far.
+
+---
+
+**Note**: I'm just a student experimenting and learning, so parts of this implementation might be a bit messy, janky, or downright stupid. But hey, it works and brings the robot to life! Suggestions, laughs, and improvements are always welcome. :)
