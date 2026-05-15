@@ -19,6 +19,7 @@ A fun Arduino project featuring a robot with emotional expressions and interacti
 - SSD1306 OLED Display (128x64)
 - Capacitive Touch Sensor
 - Passive Buzzer
+- SG90 micro servo
 
 ## Library Credit
 This project relies heavily on the excellent **RoboEyes** library by **Flux Garage**. You can find it here:
