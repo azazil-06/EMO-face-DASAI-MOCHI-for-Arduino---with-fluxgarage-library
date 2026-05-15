@@ -33,6 +33,8 @@ Big thanks to Flux Garage for making robot eyes so easy to implement!
     - **SDA**: A4
     - **Buzzer**: Pin D6 & D7 (low)
     - **Sensor**: A5
+    - **Servo (PWM)**: D11
+    - **Servo Power**: NOTE: Use External Power 5v 500mA, connecting to Arduino 5v rail can cause OLED flickering & resetting.
 3. Upload the code and start interacting with your robot!
 
 ## Features added by me & Interaction Logic
